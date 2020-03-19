@@ -1,19 +1,26 @@
 package com.example.samplethread;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
-    int value=0;
+    TextView textView;
+    MainHandler handler;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        textView = findViewById(R.id.textView);
 
         Button button = findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
@@ -24,9 +31,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        handler = new MainHandler();
+
     }
 
     class BackgroundThread extends Thread {
+        int value=0;
         public void run() {
             for (int i=0; i<100; i++) {
                 try{
@@ -35,7 +45,26 @@ public class MainActivity extends AppCompatActivity {
                     value +=1;
                     Log.d("Thread", "value: "+value);
 
+                    Message message = handler.obtainMessage(); // message 객체 참조
+                    Bundle bundle = new Bundle(); // 정보 투입
+                    bundle.putInt("value",value);
+                    message.setData(bundle);
+
+                    handler.sendMessage(message); // message queue로 전송
+
              }
+        }
+
+
+    }
+
+    class MainHandler extends Handler {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+            Bundle bundle = msg.getData();
+            int value = bundle.getInt("value");
+            textView.setText("value 값: "+value);
         }
     }
 }
